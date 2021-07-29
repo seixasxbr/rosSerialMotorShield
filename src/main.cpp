@@ -1,20 +1,24 @@
 //Code Authors:
-//* Ahmed A. Radwan (author)
-//* Maisa Jazba 
-#include <ArduinoHardware.h>
+//*Caio Maia - caiomaia3@gmail.com
+#include <Arduino.h>
 #include <ros.h>
 #include <geometry_msgs/Twist.h>
 
-#define EN_L 9
-#define IN1_L 1//BIA0
-#define IN2_L 11//BIB
-#define EN_R 8
-#define IN1_R 12//AIB
-#define IN2_R 13//AIA
+#define LEFT_MOTOR_PWM_PIN_1 5 
+#define LEFT_MOTOR_PWM_PIN_2 6 
+
+#define RIGHT_MOTOR_PWM_PIN_1 10 
+#define RIGHT_MOTOR_PWM_PIN_2 11
+
+
+#define INV_MOTOR_CRTL_A 7 // Invert rotation control
+#define INV_MOTOR_CRTL_B 8
+
+#define test_velocity 254 
+
 double w_r=0, w_l=0;
 //wheel_rad is the wheel radius ,wheel_sep is
 double wheel_rad = 0.0325, wheel_sep = 0.295;
-
 ros::NodeHandle nh;
 int lowSpeed = 200;
 int highSpeed = 50;
@@ -26,66 +30,47 @@ void messageCb( const geometry_msgs::Twist& msg){
   w_l = (speed_lin/wheel_rad) - ((speed_ang*wheel_sep)/(2.0*wheel_rad));
 }
 ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", &messageCb );
-void Motors_init();
-void MotorL(int Pulse_Width1);
-void MotorR(int Pulse_Width2);
+void Motor(int Pulse_Width1, int motorPinInput1, int motorPinInput2);
+
+void motors_init();
+
 void setup(){
- Motors_init();
- nh.initNode();
- nh.subscribe(sub);
+    motors_init();
 }
 void loop(){
- MotorL(w_l*10);
- MotorR(w_r*10);
- nh.spinOnce();
+    Motor(test_velocity,LEFT_MOTOR_PWM_PIN_1,LEFT_MOTOR_PWM_PIN_2);
+    Motor(test_velocity,RIGHT_MOTOR_PWM_PIN_1,RIGHT_MOTOR_PWM_PIN_2);
+    delay(5000);
+    Motor(-test_velocity,LEFT_MOTOR_PWM_PIN_1,LEFT_MOTOR_PWM_PIN_2);
+    Motor(-test_velocity,RIGHT_MOTOR_PWM_PIN_1,RIGHT_MOTOR_PWM_PIN_2);
+    delay(5000);
 }
-void Motors_init(){
- pinMode(EN_L, OUTPUT);
- pinMode(EN_R, OUTPUT);
- pinMode(IN1_L, OUTPUT);
- pinMode(IN2_L, OUTPUT);
- pinMode(IN1_R, OUTPUT);
- pinMode(IN2_R, OUTPUT);
- digitalWrite(EN_L, LOW);
- digitalWrite(EN_R, LOW);
- digitalWrite(IN1_L, LOW);
- digitalWrite(IN2_L, LOW);
- digitalWrite(IN1_R, LOW);
- digitalWrite(IN2_R, LOW);
+
+void motors_init(){
+    pinMode(LEFT_MOTOR_PWM_PIN_1,OUTPUT);
+    pinMode(LEFT_MOTOR_PWM_PIN_2,OUTPUT);
+    pinMode(RIGHT_MOTOR_PWM_PIN_1,OUTPUT);
+    pinMode(RIGHT_MOTOR_PWM_PIN_2,OUTPUT);
+
+    digitalWrite(LEFT_MOTOR_PWM_PIN_1,LOW);
+    digitalWrite(LEFT_MOTOR_PWM_PIN_2,LOW);
+    digitalWrite(LEFT_MOTOR_PWM_PIN_1,LOW);
+    digitalWrite(LEFT_MOTOR_PWM_PIN_2,LOW);
 }
-void MotorL(int Pulse_Width1){
+
+
+void Motor(int Pulse_Width1, int motorPinInput1, int motorPinInput2){
  if (Pulse_Width1 > 0){
-     analogWrite(EN_L, Pulse_Width1);
-     digitalWrite(IN1_L, HIGH);
-     digitalWrite(IN2_L, LOW);
+    analogWrite(motorPinInput1,Pulse_Width1);
+    analogWrite(motorPinInput2,LOW);
  }
  if (Pulse_Width1 < 0){
-     Pulse_Width1=abs(Pulse_Width1);
-     analogWrite(EN_L, Pulse_Width1);
-     digitalWrite(IN1_L, LOW);
-     digitalWrite(IN2_L, HIGH);
+    Pulse_Width1=abs(Pulse_Width1);
+    analogWrite(motorPinInput1,LOW);
+    analogWrite(motorPinInput2,Pulse_Width1);
  }
- if (Pulse_Width1 == 0){
-     analogWrite(EN_L, Pulse_Width1);
-     digitalWrite(IN1_L, LOW);
-     digitalWrite(IN2_L, LOW);
- }
-}
-void MotorR(int Pulse_Width2){
- if (Pulse_Width2 > 0){
-     analogWrite(EN_R, Pulse_Width2);
-     digitalWrite(IN1_R, LOW);
-     digitalWrite(IN2_R, HIGH);
- }
- if (Pulse_Width2 < 0){
-     Pulse_Width2=abs(Pulse_Width2);
-     analogWrite(EN_R, Pulse_Width2);
-     digitalWrite(IN1_R, HIGH);
-     digitalWrite(IN2_R, LOW);
- }
- if (Pulse_Width2 == 0){
-     analogWrite(EN_R, Pulse_Width2);
-     digitalWrite(IN1_R, LOW);
-     digitalWrite(IN2_R, LOW);
+  if (Pulse_Width1 == 0){
+     digitalWrite(motorPinInput1, LOW);
+     digitalWrite(motorPinInput2, LOW);
  }
 }
