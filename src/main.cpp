@@ -7,8 +7,8 @@
 #define LEFT_MOTOR_PWM_PIN_1 5 
 #define LEFT_MOTOR_PWM_PIN_2 6 
 
-#define RIGHT_MOTOR_PWM_PIN_1 10 
-#define RIGHT_MOTOR_PWM_PIN_2 11
+#define RIGHT_MOTOR_PWM_PIN_1 11
+#define RIGHT_MOTOR_PWM_PIN_2 10
 
 
 #define INV_MOTOR_CRTL_A 7 // Invert rotation control
@@ -36,14 +36,30 @@ void motors_init();
 
 void setup(){
     motors_init();
+    nh.initNode();
+    nh.subscribe(sub);
 }
 void loop(){
-    Motor(test_velocity,LEFT_MOTOR_PWM_PIN_1,LEFT_MOTOR_PWM_PIN_2);
-    Motor(test_velocity,RIGHT_MOTOR_PWM_PIN_1,RIGHT_MOTOR_PWM_PIN_2);
-    delay(5000);
-    Motor(-test_velocity,LEFT_MOTOR_PWM_PIN_1,LEFT_MOTOR_PWM_PIN_2);
-    Motor(-test_velocity,RIGHT_MOTOR_PWM_PIN_1,RIGHT_MOTOR_PWM_PIN_2);
-    delay(5000);
+    if (abs(w_l)<15)
+    {
+        w_l = 0;
+    }
+    if (abs(w_r)<15)
+    {
+        w_r = 0;
+    }
+    if (abs(w_l)>25) // Consertar o sinal, para contemplar os valores negativos.
+    {
+        w_l = 25;    
+    }
+    if (w_r>25)
+    {
+        w_r= 25;    
+    }
+    
+    Motor(w_l*10,LEFT_MOTOR_PWM_PIN_1,LEFT_MOTOR_PWM_PIN_2);
+    Motor(w_r*10,RIGHT_MOTOR_PWM_PIN_1,RIGHT_MOTOR_PWM_PIN_2);
+    nh.spinOnce();
 }
 
 void motors_init(){
